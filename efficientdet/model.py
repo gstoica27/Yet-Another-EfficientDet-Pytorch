@@ -329,6 +329,7 @@ class Regressor(nn.Module):
                 feat = bn(feat)
                 feat = self.swish(feat)
             feat = self.header(feat)
+            print('Regressor Layer {} feature shape: {}'.format(i, feat.shape))
 
             feat = feat.permute(0, 2, 3, 1)
             feat = feat.contiguous().view(feat.shape[0], -1, 4)
