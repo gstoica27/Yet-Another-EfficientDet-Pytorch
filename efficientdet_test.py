@@ -69,24 +69,6 @@ if use_float16:
 
 with torch.no_grad():
     features, regression, classification, anchors = model(x)
-    print('regression: {} | classification: {} | anchors: {}'.format(
-        len(regression), len(classification), len(anchors)
-    ))
-    print('regression: {} | classification: {} | anchors: {}'.format(
-        type(regression), type(classification), type(anchors)
-    ))
-    print('regression: {} | classification: {} | anchors: {}'.format(
-        regression.shape, classification.shape, anchors.shape
-    ))
-    print('Num Detections above 90%: {}'.format(
-        (classification[0].max(1)[0].detach().cpu().numpy() >= .9).shape
-    ))
-    print('Max Detections: {}'.format(
-        np.max(classification[0].max(1)[0].detach().cpu().numpy())
-    ))
-    print('Detection mean: {}'.format(
-        classification[0].mean(1)[0].mean(0)[0]
-    ))
     regressBoxes = BBoxTransform()
     clipBoxes = ClipBoxes()
 
@@ -131,6 +113,12 @@ with torch.no_grad():
                           regressBoxes, clipBoxes,
                           threshold, iou_threshold)
         out = invert_affine(framed_metas, out)
+
+        print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
+            out['rois'].shape,
+            out['class_ids'].shape,
+            out['scores'].shape
+        ))
 
     t2 = time.time()
     tact_time = (t2 - t1) / 10
