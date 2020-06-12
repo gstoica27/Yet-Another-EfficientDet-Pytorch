@@ -69,7 +69,9 @@ if use_float16:
 
 with torch.no_grad():
     features, regression, classification, anchors = model(x)
-
+    print('features: {} | regression: {} | classification: {} | anchors: {}'.format(
+        features.shape, regression.shape, classificatin.shape, achors.shape
+    ))
     regressBoxes = BBoxTransform()
     clipBoxes = ClipBoxes()
 
