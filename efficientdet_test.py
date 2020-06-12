@@ -70,6 +70,9 @@ if use_float16:
 with torch.no_grad():
     features, regression, classification, anchors = model(x)
     print('features: {} | regression: {} | classification: {} | anchors: {}'.format(
+        len(features), len(regression), len(classification), len(anchors)
+    ))
+    print('features: {} | regression: {} | classification: {} | anchors: {}'.format(
         type(features), type(regression), type(classification), type(anchors)
     ))
     print('features: {} | regression: {} | classification: {} | anchors: {}'.format(
