@@ -79,10 +79,10 @@ with torch.no_grad():
         regression.shape, classification.shape, anchors.shape
     ))
     print('Num Detections above 90%: {}'.format(
-        (classification.max(1)[0].detach().cpu().numpy() >= .9).shape
+        (classification[0].max(1)[0].detach().cpu().numpy() >= .9).shape
     ))
     print('Detection mean: {}'.format(
-        classification.mean(1)[0].mean(0)[0]
+        classification[0].mean(1)[0].mean(0)[0]
     ))
     regressBoxes = BBoxTransform()
     clipBoxes = ClipBoxes()
