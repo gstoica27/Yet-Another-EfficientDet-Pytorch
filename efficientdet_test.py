@@ -15,7 +15,7 @@ import numpy as np
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
 
-compound_coef = 0
+compound_coef = 7
 force_input_size = None  # set None to use default size
 img_path = 'test/img.png'
 
