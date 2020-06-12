@@ -81,6 +81,9 @@ with torch.no_grad():
     print('Num Detections above 90%: {}'.format(
         (classification[0].max(1)[0].detach().cpu().numpy() >= .9).shape
     ))
+    print('Max Detections: {}'.format(
+        np.max(classification[0].max(1)[0].detach().cpu().numpy())
+    ))
     print('Detection mean: {}'.format(
         classification[0].mean(1)[0].mean(0)[0]
     ))
