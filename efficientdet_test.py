@@ -115,9 +115,9 @@ with torch.no_grad():
         out = invert_affine(framed_metas, out)
 
         print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
-            out['rois'].shape,
-            out['class_ids'].shape,
-            out['scores'].shape
+            out[0]['rois'].shape,
+            out[0]['class_ids'].shape,
+            out[0]['scores'].shape
         ))
 
     t2 = time.time()
