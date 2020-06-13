@@ -42,6 +42,7 @@ class SeparableConvBlock(nn.Module):
     def forward(self, x):
         # print('X shape: {}'.format(x.shape))
         x = self.depthwise_conv(x)
+        print('Immediately after deptwise conv shape: {}'.format(x.shape))
         x = self.pointwise_conv(x)
 
         if self.norm:
