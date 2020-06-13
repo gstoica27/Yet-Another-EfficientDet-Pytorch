@@ -330,7 +330,7 @@ class Regressor(nn.Module):
                 feat = conv(feat)
                 feat = bn(feat)
                 feat = self.swish(feat)
-            print('Regressor before header feature shape: {}'.format(feat.shape))
+                print('Regressor at layer: {} before header feature shape: {}'.format(i, feat.shape))
             feat = self.header(feat)
 
 
