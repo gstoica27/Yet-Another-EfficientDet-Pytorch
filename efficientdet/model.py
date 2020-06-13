@@ -368,12 +368,15 @@ class Classifier(nn.Module):
                 feat = bn(feat)
                 feat = self.swish(feat)
             feat = self.header(feat)
-            print('Classifier feature shape: {}'.format(feat.shape))
+            feat_old = feat
+            # print('Classifier feature shape: {}'.format(feat.shape))
             feat = feat.permute(0, 2, 3, 1)
             feat = feat.contiguous().view(feat.shape[0], feat.shape[1], feat.shape[2], self.num_anchors,
                                           self.num_classes)
             feat = feat.contiguous().view(feat.shape[0], -1, self.num_classes)
-
+            print('Classifier | feature shape: {} | classes shape: {}'.format(
+                feat_old.shape, feat.shape
+            ))
             feats.append(feat)
 
         feats = torch.cat(feats, dim=1)
