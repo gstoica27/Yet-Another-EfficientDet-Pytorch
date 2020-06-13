@@ -42,8 +42,9 @@ class Conv2dStaticSamePadding(nn.Module):
         bottom = extra_v - top
 
         x = F.pad(x, [left, right, top, bottom])
-
+        print('X before same padding conv: {}'.format(x.shape))
         x = self.conv(x)
+        print('X after same padding conv: {}'.format(x.shape))
         return x
 
 
