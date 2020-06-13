@@ -66,8 +66,17 @@ class EfficientDetBackbone(nn.Module):
 
         features = (p3, p4, p5)
         features = self.bifpn(features)
-        print('Backbone p5: {}'.format(p5.shape))
-        print('P7: {}'.format(features[-1].shape))
+        print('Backbone | p3: {} | p4: {} | p5: {}'.format(
+            p3.shape,
+            p4.shape,
+            p5.shape))
+        print('BiFPN | p3: {} | p4: {} | p5: {} | p6: {} | p7: {}'.format(
+            features[0].shape,
+            features[1].shape,
+            features[2].shape,
+            features[3].shape,
+            features[4].shape))
+        # print('P7: {}'.format(features[-1].shape))
         regression = self.regressor(features)
         classification = self.classifier(features)
         anchors = self.anchors(inputs, inputs.dtype)
