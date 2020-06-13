@@ -42,9 +42,7 @@ class SeparableConvBlock(nn.Module):
     def forward(self, x):
         # print('X shape: {}'.format(x.shape))
         x = self.depthwise_conv(x)
-        print('Immediately after depthwise conv shape: {}'.format(x.shape))
         x = self.pointwise_conv(x)
-        print('Immediately after pointwise conv shape: {}'.format(x.shape))
         if self.norm:
             x = self.bn(x)
 
@@ -375,9 +373,9 @@ class Classifier(nn.Module):
             feat = feat.contiguous().view(feat.shape[0], feat.shape[1], feat.shape[2], self.num_anchors,
                                           self.num_classes)
             feat = feat.contiguous().view(feat.shape[0], -1, self.num_classes)
-            print('Classifier | feature shape: {} | classes shape: {}'.format(
-                feat_old.shape, feat.shape
-            ))
+            # print('Classifier | feature shape: {} | classes shape: {}'.format(
+            #     feat_old.shape, feat.shape
+            # ))
             feats.append(feat)
 
         feats = torch.cat(feats, dim=1)
