@@ -40,7 +40,7 @@ class SeparableConvBlock(nn.Module):
             self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
 
     def forward(self, x):
-        print('X shape: {}'.format(x.shape))
+        # print('X shape: {}'.format(x.shape))
         x = self.depthwise_conv(x)
         x = self.pointwise_conv(x)
 
