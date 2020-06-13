@@ -336,7 +336,7 @@ class Regressor(nn.Module):
 
             feat = feat.permute(0, 2, 3, 1)
             feat = feat.contiguous().view(feat.shape[0], -1, 4)
-            # print('feature shape after single regression outer layer: {}'.format(feat.shape))
+            print('feature shape after single regression outer layer: {}'.format(feat.shape))
             feats.append(feat)
 
         feats = torch.cat(feats, dim=1)
