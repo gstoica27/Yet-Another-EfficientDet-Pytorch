@@ -368,7 +368,7 @@ class Classifier(nn.Module):
                 feat = bn(feat)
                 feat = self.swish(feat)
             feat = self.header(feat)
-            print('Classifier feature shape: {}'.format(feat))
+            print('Classifier feature shape: {}'.format(feat.shape))
             feat = feat.permute(0, 2, 3, 1)
             feat = feat.contiguous().view(feat.shape[0], feat.shape[1], feat.shape[2], self.num_anchors,
                                           self.num_classes)
