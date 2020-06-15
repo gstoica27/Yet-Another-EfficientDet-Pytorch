@@ -130,29 +130,29 @@ display(out, imgs, imshow=False, imwrite=True, write_dir=img_dir)
 
 
 
-print('running speed test...')
-with torch.no_grad():
-    print('test1: model inferring and postprocessing')
-    print('inferring image for 10 times...')
-    t1 = time.time()
-    for _ in range(10):
-        _, regression, classification, anchors = model(x)
-
-        out = postprocess(x,
-                          anchors, regression, classification,
-                          regressBoxes, clipBoxes,
-                          threshold, iou_threshold)
-        out = invert_affine(framed_metas, out)
-
-    print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
-        out[0]['rois'].shape,
-        out[0]['class_ids'].shape,
-        out[0]['scores'].shape
-    ))
-
-    t2 = time.time()
-    tact_time = (t2 - t1) / 10
-    print(f'{tact_time} seconds, {1 / tact_time} FPS, @batch_size 1')
+# print('running speed test...')
+# with torch.no_grad():
+#     print('test1: model inferring and postprocessing')
+#     print('inferring image for 10 times...')
+#     t1 = time.time()
+#     for _ in range(10):
+#         _, regression, classification, anchors = model(x)
+#
+#         out = postprocess(x,
+#                           anchors, regression, classification,
+#                           regressBoxes, clipBoxes,
+#                           threshold, iou_threshold)
+#         out = invert_affine(framed_metas, out)
+#
+#     print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
+#         out[0]['rois'].shape,
+#         out[0]['class_ids'].shape,
+#         out[0]['scores'].shape
+#     ))
+#
+#     t2 = time.time()
+#     tact_time = (t2 - t1) / 10
+#     print(f'{tact_time} seconds, {1 / tact_time} FPS, @batch_size 1')
 
     # uncomment this if you want a extreme fps test
     # print('test2: model inferring only')
