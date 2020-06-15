@@ -15,6 +15,7 @@ import numpy as np
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
 import os
+from utils.region_creation import *
 
 def get_name(filepath):
     return os.path.splitext(os.path.basename(filepath))[0]
@@ -28,6 +29,17 @@ img_paths = [os.path.join(img_dir, img_name) for img_name in img_filenames]
 img_names = [get_name(img_filepath) for img_filepath in img_paths]
 for path in img_paths:
     assert os.path.exists(path), f'path: {path} does not exist'
+
+creation_schema = {
+    'relevance_fn': 'hull',
+    'filter_fn': 'iqr',
+    'filter_edge': '',
+    'minimum_size': 0
+}
+creation_name = '{}-{}-{}-{}'.format(
+    creation_schema['relevance_fn'], creation_schema['filter_fn'],
+    creation_schema['filter_edge'], creation_schema['minimum_size']
+)
 
 # replace this part with your project's anchor config
 anchor_ratios = [(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)]
@@ -118,14 +130,36 @@ def display(preds, imgs, imshow=True, imwrite=False, write_dir=None):
             cv2.waitKey(0)
 
         if imwrite:
-            component_dir = os.path.join(write_dir, f'd{compound_coef}')
+            component_dir = os.path.join(write_dir, f'd{compound_coef}', creation_name)
             os.makedirs(component_dir, exist_ok=True)
             write_path = os.path.join(component_dir, f'{name}.jpg')
             cv2.imwrite(write_path, img)
             # cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
 
 imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
+# out: [{rois: [bbox1, bbox2, ..., bboxn], class_ids: [id1, ..., idn], scores: [score1, ..., scoren]}
 out = invert_affine(framed_metas, out)
+
+def create_image_regions(detections, creation_schema):
+    regions = []
+    for frame_observations in detections:
+        frame_regions = []
+        frame_detections = frame_observations['rois']
+        for frame_detection in frame_detections:
+            frame_region = create_image_region(roi_bbox=frame_detection,
+                                               rest_bboxes=frame_detections,
+                                               region_params=creation_schema)
+            frame_regions.append(frame_region)
+        regions.append(
+            {
+                'rois': frame_regions,
+                'class_ids': frame_observations['class_ids'],
+                'scores': frame_observations['scores']
+            }
+        )
+    return regions
+
+out = create_image_regions(detections=out, creation_schema=creation_schema)
 display(out, imgs, imshow=False, imwrite=True, write_dir=img_dir)
 
 

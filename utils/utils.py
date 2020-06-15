@@ -311,3 +311,271 @@ def plot_one_box(img, coord, label=None, score=None, color=None, line_thickness=
 
         
 color_list = standard_to_bgr(STANDARD_COLORS)
+
+# George's Image Region Creation Code
+def create_image_region(bboxes, roi_bbox, filter_fn='threshold', filter_bound=.1, relevance_fn='iou', minimum_size=100):
+    """
+    Create image region around detected object using convex hull of surrounding boxes (including RoI bbox)
+    :param bboxes: list of all detected bboxes in the image
+    :type bboxes: np.array(dim=2): [N, 4]
+    :param roi_bbox: RoI to create image region over. This will be either anomaly or context center
+    :type roi_bbox: np.array([1, 4])
+    :param filter_fn: filter method to choose relevant detections to RoI
+    :type filter_fn: basestring
+    :param filter_bound: bound for filtering
+    :type filter_bound: float or int as make sense for method type
+    :param relevance_fn: method to compute detection relevance to RoI
+    :type relevance_fn: basestring
+    :param minimum_size: lower bound for padding if desired
+    :type minimum_size: float
+    :return:
+        1. bounding box of the convex hull of nearest bboxes
+        2. all relevant bboxes (if any) to RoI
+    :rtype:
+        1. 1, 4] -> replacement for bbox which is fed to captioning model
+        2. [RelevantSize, 4]
+    """
+
+    detection_overlaps = []
+    for i, bbox in enumerate(bboxes):
+        overlap = compute_iou(bbox, roi_bbox, comp_type=relevance_fn, minimum_size=minimum_size)
+        detection_overlaps.append(overlap)
+    detection_overlaps = np.array(detection_overlaps)
+
+    if filter_fn == 'threshold':
+        valid_idxs = np.where(detection_overlaps >= filter_bound)[0]
+        valid_bboxes = bboxes[valid_idxs]
+
+    elif filter_fn == 'topk':
+        # remove disjoint bboxes
+        # argsort sorts in order of increasing. Put negative to sort in order of descending
+        valid_idxs = np.argsort(-detection_overlaps)[:int(filter_bound)]
+        valid_bboxes = bboxes[valid_idxs]
+
+    elif filter_fn == 'iqr':
+        # remove all bboxes with no overlaps, because they skew statistic toward 0, and we don't care about them
+        valid_idxs = np.where(detection_overlaps > 0.0)[0]
+        valid_bboxes = bboxes[valid_idxs]
+        # filter out irrelevant bboxes
+        valid_overlaps = detection_overlaps[valid_idxs]
+        increasing_idxs = np.argsort(valid_overlaps)
+        # order in terms of increasing relevance
+        increasing_overlaps = valid_overlaps[increasing_idxs]
+        increasing_boxes = valid_bboxes[increasing_idxs]
+        # compute iqr for outlier extraction
+        q1 = np.percentile(increasing_overlaps, 25, interpolation='midpoint')
+        q3 = np.percentile(increasing_overlaps, 75, interpolation='midpoint')
+        iqr = q3 - q1
+        # compute outlier bound
+        iqr_bound = np.median(increasing_overlaps) + 1.5 * iqr
+        # get outlier bboxes (most well aligned with anomaly bbox)
+        significant_idxs = np.where(increasing_overlaps >= iqr_bound)[0]
+        # print('increasing bboxes: {}'.format(increasing_boxes.shape))
+        # print('selected bboxes: {}'.format(increasing_boxes[significant_idxs].shape))
+        valid_bboxes = increasing_boxes[significant_idxs]
+
+    elif filter_fn == 'pad_solo':
+        # pad all bboxes to be at least some size (so that they have surrounding context)
+        padded_anomaly = pad_bbox(roi_bbox, minimum_size=minimum_size)
+        valid_bboxes = padded_anomaly.reshape((1, 4))
+
+    else:
+        raise ValueError('filter_fn must be either: threshold, topk, iqr, pad_solo. It is now: {}'.format(filter_fn))
+    # if filter_fn not in ['iqr', 'pad_solo']:
+    #     valid_bboxes = bboxes[valid_idxs]
+
+    # Add anomaly just in case
+    valid_bboxes = np.concatenate((valid_bboxes.reshape((-1, 4)), roi_bbox.reshape((1, 4))), axis=0)
+    convex_hull = compute_convex_hull(valid_bboxes)
+    # Next few lines check an assertion that the convex hull is at least as large as the RoI, and if not saves data
+    # for debugging
+    convex_hull_area = compute_bbox_area(convex_hull)
+    roi_bbox_area = compute_bbox_area(roi_bbox)
+
+    if convex_hull_area < roi_bbox_area:
+        data = {'bboxes': bboxes, 'anomaly': roi_bbox}
+        with open('/home/scratch/gis/tmp_caption/captions/debug_data.pkl', 'w') as handle:
+            pickle.dump(data, handle)
+    if not bbox_in_hull(convex_hull, roi_bbox):
+        data = {'bboxes': bboxes, 'anomaly': roi_bbox}
+        with open('/home/scratch/gis/tmp_caption/captions/hull_debug_data.pkl', 'w') as handle:
+            pickle.dump(data, handle)
+
+    assert convex_hull_area >= roi_bbox_area, 'convex hull must be at least the area of the essential bbox'
+    print('Convex Hull vsBBox prop: {}'.format(convex_hull_area / roi_bbox_area))
+    assert bbox_in_hull(convex_hull, roi_bbox), 'hull must surround bbox'
+
+    # return convex_hull and all valid bboxes
+    return convex_hull, valid_bboxes
+
+
+def bbox_in_hull(hull, bbox):
+    if (hull[0] <= bbox[0] and hull[1] <= bbox[1] and hull[2] >= bbox[2] and hull[3] >= bbox[3]):
+        return True
+    return False
+
+
+def compute_bbox_intersection_area(bbox1, bbox2):
+    bbox1_x1 = bbox1[0]
+    bbox1_y1 = bbox1[1]
+    bbox1_x2 = bbox1[2]
+    bbox1_y2 = bbox1[3]
+
+    bbox2_x1 = bbox2[0]
+    bbox2_y1 = bbox2[1]
+    bbox2_x2 = bbox2[2]
+    bbox2_y2 = bbox2[3]
+
+    intersection_width = min(bbox1_x2, bbox2_x2) - max(bbox1_x1, bbox2_x1) + 1
+    intersection_height = min(bbox1_y2, bbox2_y2) - max(bbox1_y1, bbox2_y1) + 1
+
+    if intersection_height < 0 or intersection_width < 0:
+        intersection_area = 0.
+    else:
+        intersection_area = intersection_width * intersection_height
+    return intersection_area
+
+
+def compute_overlap(bbox1, bbox2, comp_type='iou', minimum_size=100):
+    """
+    Compute iou between two bboxes
+    :param bbox1: first bbox
+    :type bbox1: np.array([1, 4])
+    :param bbox2: second bbox
+    :type bbox2: np.array([1, 4])
+    :return: overlap proportion
+    :rtype: float
+    """
+    # print('comp_type is: {} | equals giou? {}'.format(comp_type, comp_type == 'giou'))
+    if comp_type == 'iou':
+        iou = compute_iou(bbox1, bbox2)
+
+    # area of intersection divided by candidate bounding box
+    # this encourages the selection of condidate boxes that are near the anomaly
+    elif comp_type == 'candidate':
+        iou = compute_candidate(bbox1, bbox2)
+
+    elif comp_type == 'hull':
+        iou = compute_hull(bbox1, bbox2)
+
+    elif comp_type == 'giou':
+        iou = compute_giou(bbox1, bbox2)
+
+    elif comp_type == 'pad_iou':
+        # padd anomaly bbox
+        padded_bbox2 = pad_bbox(bbox2, minimum_size=minimum_size)
+        iou = compute_giou(bbox1, padded_bbox2)
+
+    else:
+        raise ValueError(
+            'comp_type is: {} must be either iou: vanilla iou, candidate: prop intersect, hull: convex hull iou'.format(
+                comp_type)
+        )
+    # print('bbox1: {} | bbox2: {}'.format(bbox1, bbox2))
+    return iou
+
+
+def compute_iou(bbox1, bbox2):
+    intersection_area = compute_bbox_intersection_area(bbox1, bbox2)
+    bbox1_area = compute_bbox_area(bbox1)
+    bbox2_area = compute_bbox_area(bbox2)
+    iou = intersection_area / (bbox1_area + bbox2_area - intersection_area)
+    return iou
+
+
+def compute_candidate(bbox1, bbox2):
+    intersection_area = compute_bbox_intersection_area(bbox1, bbox2)
+    bbox1_area = compute_bbox_area(bbox1)
+    bbox2_area = compute_bbox_area(bbox2)
+    iou = intersection_area / max(bbox1_area, bbox2_area)
+    return iou
+
+
+def compute_hull(bbox1, bbox2):
+    intersection_area = compute_bbox_intersection_area(bbox1, bbox2)
+    bbox1_area = compute_bbox_area(bbox1)
+    bbox2_area = compute_bbox_area(bbox2)
+    union_area = (bbox1_area + bbox2_area - intersection_area)
+    stacked_bboxes = np.concatenate((bbox1.reshape((1, 4)), bbox2.reshape((1, 4))), axis=0)
+    hull = compute_convex_hull(stacked_bboxes)
+    hull_area = compute_bbox_area(hull)
+    iou = union_area / hull_area
+    return iou
+
+
+def compute_giou(bbox1, bbox2):
+    bbox1_area = compute_bbox_area(bbox1)
+    bbox2_area = compute_bbox_area(bbox2)
+    intersection_area = compute_bbox_intersection_area(bbox1, bbox2)
+    union_area = (bbox1_area + bbox2_area - intersection_area)
+    stacked_bboxes = np.concatenate((bbox1.reshape((1, 4)), bbox2.reshape((1, 4))), axis=0)
+    hull = compute_convex_hull(stacked_bboxes)
+    hull_area = compute_bbox_area(hull)
+
+    hull_offset = (hull_area - union_area) / hull_area
+    iou = intersection_area / union_area
+    iou = iou - hull_offset
+    return iou
+
+
+def pad_bbox(bbox, minimum_size=100):
+    """
+    Pad bbox to a lower bound specified by minimum_size. Note, the radius (and padding) is measured along either the
+    x or y axis, and the bbox radius is taken to be larger of the two. Padding is performed until that radius achieves
+    the lower bound
+    :param bbox: bbox to be padded
+    :type bbox: [x1, y1, x2, y2]
+    :param minimum_size: lower bound radius
+    :type minimum_size: float
+    :return: padded bbox
+    :rtype: [1, 4]
+    """
+    bbox_ = bbox.copy()
+    cx = (bbox[0] + bbox[2]) / 2
+    cy = (bbox[1] + bbox[3]) / 2
+    # make padding amount be dependent on largest side of bbox
+    radius = np.linalg.norm([cx - bbox[0], cy - bbox[1]])
+    # limit pad radius amount
+    padding_num = max(float(minimum_size) - radius, 0.)
+
+    # bbox_[0] = max(0., bbox[0] - padding_num)
+    # bbox_[1] = max(0., bbox[1] - padding_num)
+    # bbox_[2] = min(600, bbox[2] + padding_num + 1)
+    # bbox_[3] = min(600, bbox[3] + padding_num + 1)
+    bbox_[0] -= padding_num
+    bbox_[1] -= padding_num
+    bbox_[2] += padding_num
+    bbox_[3] += padding_num
+
+    return bbox_
+
+
+def compute_bbox_area(bbox):
+    """
+    compute bbox area
+    :param bbox: bbox
+    :type bbox: [1, 4]
+    :return: area
+    :rtype: float
+    """
+    # print(bbox)
+    width = bbox[2] - bbox[0] + 1
+    height = bbox[3] - bbox[1] + 1
+    return width * height
+
+
+def compute_convex_hull(bboxes):
+    """
+    Compute the convex hull over a series of bboxes
+    :param bboxes: np array of bounding boxes
+    :type bboxes: np.array([N, 4])
+    :return: convex hull bounding box coordinates
+    :rtype:
+    """
+    min_x1 = np.min(bboxes[:, 0])
+    max_x2 = np.max(bboxes[:, 2])
+    min_y1 = np.min(bboxes[:, 1])
+    max_y2 = np.max(bboxes[:, 3])
+
+    convex_hull = np.array([min_x1, min_y1, max_x2, max_y2])  # .reshape((1, 4))
+    return convex_hull
