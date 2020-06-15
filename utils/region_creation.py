@@ -1,9 +1,5 @@
 from utils import utils
 import numpy as np
-import os
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 # This file contains all code necessary to create image regions, as well as merge them together
 #   cohesively into output format to caption generator
