@@ -74,7 +74,7 @@ def preprocess(image_paths, max_size=512, mean=(0.406, 0.456, 0.485), std=(0.225
             img_data = cv2.imread(image_path)
             ori_imgs.append(img_data)
     else:
-        ori_imgs = [cv2.imread(img_path) for img_path in image_paths]
+        ori_imgs = [cv2.imread(img_path) for img_path in [image_paths]]
     normalized_imgs = [(img / 255 - mean) / std for img in ori_imgs]
     imgs_meta = [aspectaware_resize_padding(img[..., ::-1], max_size, max_size,
                                             means=None) for img in normalized_imgs]
