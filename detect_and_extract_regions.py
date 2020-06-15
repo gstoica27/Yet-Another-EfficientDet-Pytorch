@@ -75,7 +75,7 @@ def get_frame2data(model_observations, frame_paths, frame_names):
     frame2data = {}
     triple_iter = zip(model_observations, frame_paths, frame_names)
     for model_observation, frame_path, frame_name in triple_iter:
-        data = deepcopy(model_observations)
+        data = deepcopy(model_observation)
         data['path'] = frame_path
         frame2data[frame_name] = data
     return frame2data
