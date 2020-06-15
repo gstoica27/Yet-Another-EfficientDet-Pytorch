@@ -118,13 +118,15 @@ def display(preds, imgs, imshow=True, imwrite=False, write_dir=None):
             cv2.waitKey(0)
 
         if imwrite:
-            write_path = os.path.join(write_dir, f'd{compound_coef}', f'{name}.jpg')
+            write_dir = os.path.join(write_dir, f'd{compound_coef}')
+            os.makedirs(write_dir)
+            write_path = os.path.join(write_dir, f'{name}.jpg')
             cv2.imwrite(write_path, img)
             # cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
 
 imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
 out = invert_affine(framed_metas, out)
-display(out, imgs, imshow=False, imwrite=True)
+display(out, imgs, imshow=False, imwrite=True, write_dir=img_dir)
 
 
 
