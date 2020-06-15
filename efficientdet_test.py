@@ -119,7 +119,7 @@ def display(preds, imgs, imshow=True, imwrite=False, write_dir=None):
 
         if imwrite:
             component_dir = os.path.join(write_dir, f'd{compound_coef}')
-            os.makedirs(component_dir)
+            os.makedirs(component_dir, exist_ok=True)
             write_path = os.path.join(component_dir, f'{name}.jpg')
             cv2.imwrite(write_path, img)
             # cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
