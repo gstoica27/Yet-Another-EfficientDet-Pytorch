@@ -146,9 +146,9 @@ def create_image_regions(detections, creation_schema):
         frame_regions = []
         frame_detections = frame_observations['rois']
         for frame_detection in frame_detections:
-            frame_region = create_image_region(roi_bbox=frame_detection,
-                                               rest_bboxes=frame_detections,
-                                               region_params=creation_schema)
+            frame_region, _ = create_image_region(roi_bbox=frame_detection,
+                                                  rest_bboxes=frame_detections,
+                                                  region_params=creation_schema)
             frame_regions.append(frame_region)
         regions.append(
             {

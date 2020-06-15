@@ -126,7 +126,7 @@ def create_image_region(roi_bbox, rest_bboxes, region_params):
         import pdb;pdb.set_trace()
     assert image_region_area >= roi_bbox_area, \
         'Region must be at least the area of the essential bbox'
-    print('Region vsBBox prop: {}'.format(image_region_area / roi_bbox_area))
+    # print('Region vsBBox prop: {}'.format(image_region_area / roi_bbox_area))
     assert utils.bbox_in_hull(convex_hull, roi_bbox), 'Region must surround bbox'
     # return image_region and all valid bboxes
     return image_region, valid_bboxes
