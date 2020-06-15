@@ -19,7 +19,7 @@ import os
 def get_name(filepath):
     return os.path.splitext(os.path.basename(filepath))[0]
 
-compound_coef = 4
+compound_coef = 3
 force_input_size = None  # set None to use default size
 # img_paths = 'test/img.png'
 img_dir = '/home/scratch/gis/datasets/Avenue/behavior_testing'
