@@ -10,7 +10,7 @@ from matplotlib import colors
 import os
 from backbone import EfficientDetBackbone
 import cv2
-import json
+import pickle
 import numpy as np
 from copy import deepcopy
 
@@ -77,9 +77,6 @@ def get_frame2data(model_observations, frame_paths, frame_names):
     for model_observation, frame_path, frame_name in triple_iter:
         data = deepcopy(model_observation)
         data['path'] = frame_path
-        # data['rois'].tolist()
-        data['scores'].tolist()
-        data['class_ids'].tolist()
         frame2data[frame_name] = data
     return frame2data
 
@@ -185,8 +182,8 @@ if __name__ == '__main__':
         # pipeline_save_dir = os.path.join(save_dir, video_id)
         # os.makedirs(pipeline_save_dir, exist_ok=True)
         pipeline_save_dir = create_dir(save_dir, video_id)
-        pipeline_save_path = os.path.join(pipeline_save_dir, 'frame2data.json')
+        pipeline_save_path = os.path.join(pipeline_save_dir, 'frame2data.pkl')
         print(f'Saving information to: {pipeline_save_path}')
-        with open(pipeline_save_path, 'w') as handle:
-            json.dump(frame2data, handle)
+        with open(pipeline_save_path, 'wb') as handle:
+            pickle.dump(frame2data, handle)
         print('Saved!')
