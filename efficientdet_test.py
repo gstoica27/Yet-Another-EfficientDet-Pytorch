@@ -26,6 +26,8 @@ img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
 img_paths = [os.path.join(img_dir, img_name) for img_name in img_filenames]
 img_names = [get_name(img_filepath) for img_filepath in img_paths]
 # img_path = 'test/img.png'
+for path in img_paths:
+    assert os.path.exists(path), f'path: {path} does not exist'
 
 # replace this part with your project's anchor config
 anchor_ratios = [(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)]
