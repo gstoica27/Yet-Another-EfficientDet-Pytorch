@@ -114,11 +114,11 @@ with torch.no_grad():
                           threshold, iou_threshold)
         out = invert_affine(framed_metas, out)
 
-        print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
-            out[0]['rois'].shape,
-            out[0]['class_ids'].shape,
-            out[0]['scores'].shape
-        ))
+    print('Bboxes: {} | Classes: {} | Probabilities: {}'.format(
+        out[0]['rois'].shape,
+        out[0]['class_ids'].shape,
+        out[0]['scores'].shape
+    ))
 
     t2 = time.time()
     tact_time = (t2 - t1) / 10
