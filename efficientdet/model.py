@@ -376,7 +376,7 @@ class Classifier(nn.Module):
 
         feats = torch.cat(feats, dim=1)
         feats = feats.sigmoid()
-        print('classifier probs shape: {}'.format(feats.shape))
+        # print('classifier probs shape: {}'.format(feats.shape))
 
         return feats
 
