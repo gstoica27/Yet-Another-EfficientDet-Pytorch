@@ -77,7 +77,7 @@ def get_frame2data(model_observations, frame_paths, frame_names):
     for model_observation, frame_path, frame_name in triple_iter:
         data = deepcopy(model_observation)
         data['path'] = frame_path
-        data['rois'].tolist()
+        # data['rois'].tolist()
         data['scores'].tolist()
         data['class_ids'].tolist()
         frame2data[frame_name] = data
