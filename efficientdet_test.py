@@ -20,7 +20,7 @@ from utils.region_creation import *
 def get_name(filepath):
     return os.path.splitext(os.path.basename(filepath))[0]
 
-compound_coef = 5
+compound_coef = 4
 force_input_size = None  # set None to use default size
 # img_paths = 'test/img.png'
 img_dir = '/home/scratch/gis/datasets/Avenue/behavior_testing'
@@ -31,9 +31,9 @@ for path in img_paths:
     assert os.path.exists(path), f'path: {path} does not exist'
 
 creation_schema = {
-    'relevance_fn': 'hull',
-    'filter_fn': 'iqr',
-    'filter_edge': '',
+    'relevance_fn': 'iou',
+    'filter_fn': 'threshold',
+    'filter_edge': '.001',
     'minimum_size': 0
 }
 creation_name = '{}-{}-{}-{}'.format(
