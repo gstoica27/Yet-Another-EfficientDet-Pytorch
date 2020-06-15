@@ -33,7 +33,7 @@ for path in img_paths:
 creation_schema = {
     'relevance_fn': 'iou',
     'filter_fn': 'threshold',
-    'filter_edge': '.001',
+    'filter_edge': .001,
     'minimum_size': 0
 }
 creation_name = '{}-{}-{}-{}'.format(
