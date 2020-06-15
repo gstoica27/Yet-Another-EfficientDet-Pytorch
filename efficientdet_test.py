@@ -14,10 +14,18 @@ import numpy as np
 
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
+import os
+
+def get_name(filepath):
+    return os.path.splitext(os.path.basename(filepath))[0]
 
 compound_coef = 7
 force_input_size = None  # set None to use default size
-img_path = 'test/img.png'
+img_dir = '/home/scratch/gis/datasets/Avenue/behavior_testing'
+img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
+img_paths = [os.path.join(img_dir, img_name) for img_name in img_filenames]
+img_names = [get_name(img_filepath) for img_filepath in img_paths]
+# img_path = 'test/img.png'
 
 # replace this part with your project's anchor config
 anchor_ratios = [(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)]
@@ -31,23 +39,23 @@ use_float16 = False
 cudnn.fastest = True
 cudnn.benchmark = True
 
-obj_list = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-            'fire hydrant', '', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep',
-            'cow', 'elephant', 'bear', 'zebra', 'giraffe', '', 'backpack', 'umbrella', '', '', 'handbag', 'tie',
-            'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
-            'skateboard', 'surfboard', 'tennis racket', 'bottle', '', 'wine glass', 'cup', 'fork', 'knife', 'spoon',
-            'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
-            'cake', 'chair', 'couch', 'potted plant', 'bed', '', 'dining table', '', '', 'toilet', '', 'tv',
-            'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink',
-            'refrigerator', '', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier',
-            'toothbrush']
+obj_list = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+            "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+            "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+            "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite",
+            "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
+            "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
+            "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant",
+            "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+            "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+            "teddy bear", "hair drier", "toothbrush"]
 
 
 color_list = standard_to_bgr(STANDARD_COLORS)
 # tf bilinear interpolation is different from any other's, just make do
 input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
 input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
-ori_imgs, framed_imgs, framed_metas = preprocess(img_path, max_size=input_size)
+ori_imgs, framed_imgs, framed_metas = preprocess(img_paths, max_size=input_size)
 
 if use_cuda:
     x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
@@ -77,8 +85,9 @@ with torch.no_grad():
                       regressBoxes, clipBoxes,
                       threshold, iou_threshold)
 
-def display(preds, imgs, imshow=True, imwrite=False):
-    for i in range(len(imgs)):
+def display(preds, imgs, imshow=True, imwrite=False, write_dir=None):
+    # for i in range(len(imgs)):
+    for i, (name, img) in enumerate(imgs.items()):
         if len(preds[i]['rois']) == 0:
             continue
 
@@ -86,7 +95,11 @@ def display(preds, imgs, imshow=True, imwrite=False):
             x1, y1, x2, y2 = preds[i]['rois'][j].astype(np.int)
             obj = obj_list[preds[i]['class_ids'][j]]
             score = float(preds[i]['scores'][j])
-            plot_one_box(imgs[i], [x1, y1, x2, y2], label=obj,score=score,color=color_list[get_index_label(obj, obj_list)])
+            plot_one_box(img, #imgs[i],
+                         [x1, y1, x2, y2],
+                         label=obj,
+                         score=score,
+                         color=color_list[get_index_label(obj, obj_list)])
 
 
         if imshow:
@@ -94,11 +107,15 @@ def display(preds, imgs, imshow=True, imwrite=False):
             cv2.waitKey(0)
 
         if imwrite:
-            cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
+            write_path = os.path.join(write_dir, f'd{compound_coef}', f'{name}.jpg')
+            cv2.imwrite(write_path, img)
+            # cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
 
-
+imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
 out = invert_affine(framed_metas, out)
-display(out, ori_imgs, imshow=False, imwrite=True)
+display(out, imgs, imshow=False, imwrite=True)
+
+
 
 print('running speed test...')
 with torch.no_grad():
