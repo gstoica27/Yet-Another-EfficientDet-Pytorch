@@ -55,7 +55,7 @@ def create_image_regions(detections, creation_schema):
     regions = []
     for frame_observations in detections:
         frame_regions = []
-        frame_detections = frame_observations['rois']
+        frame_detections = nms(frame_observations['rois'], thresh=.6)
         seen_frame_regions = set()
         for frame_detection in frame_detections:
             # Only create region if it's unseen (avoid duplicates)
