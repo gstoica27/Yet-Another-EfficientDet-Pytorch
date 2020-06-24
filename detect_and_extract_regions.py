@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
     save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
     # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
-    batch_size = 100
+    batch_size = 4
     os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
