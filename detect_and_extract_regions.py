@@ -155,12 +155,12 @@ if __name__ == '__main__':
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
     partition_name = 'train'
-    # partition_dir = os.path.join(cwd, 'datasets/example/train')
-    partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
+    partition_dir = os.path.join(cwd, 'datasets/example/train')
+    # partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
-    # save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
-    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
-    batch_size = 4
+    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
+    batch_size = 2
     os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             img_paths_batch = img_paths[i: i + batch_size]
             img_names_batch = img_names[i: i + batch_size]
 
-            ori_imgs, framed_imgs, framed_metas = preprocess(img_paths.tolist(), max_size=input_size)
+            ori_imgs, framed_imgs, framed_metas = preprocess(img_paths_batch.tolist(), max_size=input_size)
 
             if use_cuda:
                 x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                                   regressBoxes, clipBoxes,
                                   threshold, iou_threshold)
             # {frame_id: frame_image, ...}
-            imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
+            imgs = dict([(name, img) for name, img in zip(img_names_batch, ori_imgs)])
             # out: [{rois: [bbox1, bbox2, ..., bboxn], class_ids: [id1, ..., idn], scores: [score1, ..., scoren]}
             out = invert_affine(framed_metas, out)
             # Create Image Regions
@@ -215,7 +215,7 @@ if __name__ == '__main__':
             visual_save_dir = os.path.join(save_dir, f'd{compound_coef}', creation_name, video_id)
             display(out, imgs, imshow=False, imwrite=True, write_dir=visual_save_dir)
             # Save Extracted Pipeline Data
-            batch_frame2data = get_frame2data(model_observations=out, frame_paths=img_paths, frame_names=img_names)
+            batch_frame2data = get_frame2data(model_observations=out, frame_paths=img_paths, frame_names=img_names_batch)
             frame2data.update(batch_frame2data)
         # pipeline_save_dir = os.path.join(save_dir, video_id)
         # os.makedirs(pipeline_save_dir, exist_ok=True)
