@@ -58,6 +58,7 @@ def create_image_regions(detections, creation_schema):
         frame_detections = frame_observations['rois']
         seen_frame_regions = set()
         seen_region_idxs = []
+        print('Frame detections: {}'.format(frame_detections))
         for idx, frame_detection in enumerate(frame_detections):
             # Only create region if it's unseen (avoid duplicates)
             if tuple(frame_detection) in seen_frame_regions:
