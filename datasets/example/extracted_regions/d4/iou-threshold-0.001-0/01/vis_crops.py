@@ -7,10 +7,10 @@ import numpy as np
 import json
 
 # frame2data_path = '/Users/georgestoica/Desktop/Research/Yet-Another-EfficientDet-Pytorch/datasets/example/image_captions/01/frame2data_captions.pkl'
-frame2data_path = '/Users/georgestoica/Desktop/Research/Yet-Another-EfficientDet-Pytorch/datasets/example/image_captions/01/frame2data_captions.json'
+frame2data_path = '/Users/georgestoica/Desktop/Research/Yet-Another-EfficientDet-Pytorch/datasets/example/image_captions/01/frame2data.pkl'
 
-# frame2data = pickle.load(open(frame2data_path, 'rb'))
-frame2data = json.load(open(frame2data_path, 'r'))
+frame2data = pickle.load(open(frame2data_path, 'rb'))
+# frame2data = json.load(open(frame2data_path, 'r'))
 frame_data = frame2data['453']
 image_path = '/Users/georgestoica/Desktop/Research/Yet-Another-EfficientDet-Pytorch/datasets/example/train/01/453.jpg'
 image_rois = frame_data['rois']

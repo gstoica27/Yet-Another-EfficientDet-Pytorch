@@ -61,6 +61,7 @@ def create_image_regions(detections, creation_schema):
         for idx, frame_detection in enumerate(frame_detections):
             # Only create region if it's unseen (avoid duplicates)
             if tuple(frame_detection) in seen_frame_regions:
+                print('SKipping!')
                 continue
             frame_region, _ = create_image_region(roi_bbox=frame_detection,
                                                   rest_bboxes=frame_detections,
