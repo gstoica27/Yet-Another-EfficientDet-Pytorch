@@ -67,7 +67,6 @@ def remove_highly_similar_regions(regions):
                                               )
         region_tuple = tuple(umbrella_region)
         # Only create region if it's unseen (avoid duplicates)
-        print(region_tuple)
         if region_tuple not in seen_regions:
             seen_regions.add(region_tuple)
             distinct_idxs.append(idx)
