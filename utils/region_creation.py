@@ -5,6 +5,7 @@ import numpy as np
 #   cohesively into output format to caption generator
 
 def threshold_filter(bboxes, overlaps, minimum_overlap):
+    print('overlaps: {}'.format(overlaps))
     valid_idxs = np.where(overlaps >= minimum_overlap)[0]
     return bboxes[valid_idxs]
 
