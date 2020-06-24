@@ -60,17 +60,16 @@ def create_image_regions(detections, creation_schema):
         seen_region_idxs = []
         print('Frame detections: {}'.format(frame_detections))
         for idx, frame_detection in enumerate(frame_detections):
-            # Only create region if it's unseen (avoid duplicates)
-            if tuple(frame_detection) in seen_frame_regions:
-                print('SKipping!')
-                continue
             frame_region, _ = create_image_region(roi_bbox=frame_detection,
                                                   rest_bboxes=frame_detections,
                                                   region_params=creation_schema)
             frame_regions.append(frame_region)
-            region_tuple = tuple(frame_detection)
-            seen_frame_regions.add(region_tuple)
-            seen_region_idxs.append(idx)
+            region_tuple = tuple(frame_region)
+            # Only create region if it's unseen (avoid duplicates)
+            if region_tuple not in seen_frame_regions:
+                print('Including')
+                seen_frame_regions.add(region_tuple)
+                seen_region_idxs.append(idx)
 
         regions.append(
             {
