@@ -50,30 +50,47 @@ def display(preds, imgs, imshow=True, imwrite=False, write_dir=None):
             write_path = os.path.join(write_dir, f'{name}.jpg')
             cv2.imwrite(write_path, img)
 
+def remove_highly_similar_regions(regions):
+    # Remove regions which are too similar
+    distinct_regions = []
+    distinct_idxs = []
+    seen_regions = set()
+    for idx, region in enumerate(regions):
+        umbrella_region = create_image_region(roi_bbox=region,
+                                              rest_bboxes=regions,
+                                              region_params={
+                                                  'relevance_fn': 'iou',
+                                                  'filter_fn': 'threshold',
+                                                  'filter_edge': .8,
+                                                  'pad_amount': 0
+                                              }
+                                              )
+        region_tuple = tuple(umbrella_region)
+        # Only create region if it's unseen (avoid duplicates)
+        if region_tuple not in seen_regions:
+            seen_regions.add(region_tuple)
+            distinct_idxs.append(idx)
+            distinct_regions.append(umbrella_region)
+    return distinct_regions, distinct_idxs
 
 def create_image_regions(detections, creation_schema):
     regions = []
     for frame_observations in detections:
         frame_regions = []
         frame_detections = frame_observations['rois']
-        seen_frame_regions = set()
-        seen_region_idxs = []
         for idx, frame_detection in enumerate(frame_detections):
             frame_region, _ = create_image_region(roi_bbox=frame_detection,
                                                   rest_bboxes=frame_detections,
                                                   region_params=creation_schema)
-            region_tuple = tuple(frame_region)
-            # Only create region if it's unseen (avoid duplicates)
-            if region_tuple not in seen_frame_regions:
-                frame_regions.append(frame_region)
-                seen_frame_regions.add(region_tuple)
-                seen_region_idxs.append(idx)
+            frame_regions.append(frame_region)
+
+        frame_regions, keep_idxs = remove_highly_similar_regions(frame_regions)
 
         regions.append(
             {
                 'rois': frame_regions,
-                'class_ids': frame_observations['class_ids'][seen_region_idxs],
-                'scores': frame_observations['scores'][seen_region_idxs]
+                'class_ids': frame_observations['class_ids'][keep_idxs],
+                'scores': frame_observations['scores'][keep_idxs]
             }
         )
     return regions
