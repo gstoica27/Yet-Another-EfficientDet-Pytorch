@@ -55,9 +55,10 @@ def create_image_regions(detections, creation_schema):
     regions = []
     for frame_observations in detections:
         frame_regions = []
-        frame_detections = nms(frame_observations['rois'], thresh=.6)
+        frame_detections = frame_observations['rois']
         seen_frame_regions = set()
-        for frame_detection in frame_detections:
+        seen_region_idxs = []
+        for idx, frame_detection in enumerate(frame_detections):
             # Only create region if it's unseen (avoid duplicates)
             if frame_detection in seen_frame_regions:
                 continue
@@ -67,11 +68,13 @@ def create_image_regions(detections, creation_schema):
             frame_regions.append(frame_region)
             region_tuple = tuple(frame_detection)
             seen_frame_regions.add(region_tuple)
+            seen_region_idxs.append(idx)
+
         regions.append(
             {
                 'rois': frame_regions,
-                'class_ids': frame_observations['class_ids'],
-                'scores': frame_observations['scores']
+                'class_ids': frame_observations['class_ids'][seen_region_idxs],
+                'scores': frame_observations['scores'][seen_region_idxs]
             }
         )
     return regions
