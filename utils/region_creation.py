@@ -52,18 +52,18 @@ def filter_bboxes(bboxes, overlaps, filter_fn, filter_edge):
 
     return valid_bboxes
 
-def resize_region(initial_region, minimum_size):
+def resize_region(initial_region, pad_amount):
     """
     Make image region have area at least as large as minimum_size
         on each side (squarely expand)
     :param initial_region: current region bbox coordinates
     :type initial_region: np.array([]) | [1, 4]
-    :param minimum_size: minimum size for resized region
+    :param pad_amount: minimum size for resized region
     :type minimum_size: int
     :return: resized region cordinates
     :rtype: np.array([]) | [1, 4]
     """
-    return utils.pad_bbox(bbox=initial_region, minimum_size=minimum_size).\
+    return utils.pad_bbox(bbox=initial_region, pad_amount=pad_amount).\
         reshape(4)
 
 def create_image_region(roi_bbox, rest_bboxes, region_params):
@@ -89,14 +89,14 @@ def create_image_region(roi_bbox, rest_bboxes, region_params):
     relevance_fn = region_params['relevance_fn']
     filter_fn = region_params['filter_fn']
     filter_edge = region_params['filter_edge']
-    minimum_size = region_params['minimum_size']
+    pad_amount = region_params['pad_amount']
 
     detection_overlaps = []
     for i, bbox in enumerate(rest_bboxes):
         overlap = utils.compute_overlap(bbox,
                                         roi_bbox,
                                         comp_type=relevance_fn,
-                                        minimum_size=minimum_size)
+                                        pad_amount=pad_amount)
         detection_overlaps.append(overlap)
     detection_overlaps = np.array(detection_overlaps)
 
@@ -113,7 +113,7 @@ def create_image_region(roi_bbox, rest_bboxes, region_params):
     #   at least as large as the RoI, and if not saves data for
     #   debugging
     image_region = resize_region(initial_region=convex_hull,
-                                 minimum_size=minimum_size)
+                                 pad_amount=pad_amount)
     # print('Image region: {}'.format(image_region))
     image_region_area = utils.compute_bbox_area(image_region)
     roi_bbox_area = utils.compute_bbox_area(roi_bbox)
