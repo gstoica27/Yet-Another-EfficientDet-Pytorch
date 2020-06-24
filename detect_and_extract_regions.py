@@ -176,7 +176,7 @@ if __name__ == '__main__':
             img_paths_batch = img_paths[i: i + batch_size]
             img_names_batch = img_names[i: i + batch_size]
 
-            ori_imgs, framed_imgs, framed_metas = preprocess(img_paths, max_size=input_size)
+            ori_imgs, framed_imgs, framed_metas = preprocess(img_paths.tolist(), max_size=input_size)
 
             if use_cuda:
                 x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
