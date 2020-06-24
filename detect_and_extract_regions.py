@@ -155,11 +155,12 @@ if __name__ == '__main__':
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
     partition_name = 'train'
-    # partition_dir = os.path.join(cwd, 'datasets/example/train')
-    partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
+    partition_dir = os.path.join(cwd, 'datasets/example/train')
+    # partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
-    # save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
-    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
+    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
+    batch_size = 2
     os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
@@ -167,49 +168,55 @@ if __name__ == '__main__':
             continue
         frame_filenames = os.listdir(video_dir)
 
-        img_paths = [os.path.join(video_dir, img_name) for img_name in frame_filenames]
-        img_names = [get_name(img_filepath) for img_filepath in img_paths]
+        img_paths = np.array([os.path.join(video_dir, img_name) for img_name in frame_filenames])
+        img_names = np.array([get_name(img_filepath) for img_filepath in img_paths])
 
-        ori_imgs, framed_imgs, framed_metas = preprocess(img_paths, max_size=input_size)
+        frame2data = {}
+        for i in range(0, len(img_paths), batch_size):
+            img_paths_batch = img_paths[i: i + batch_size]
+            img_names_batch = img_names[i: i + batch_size]
 
-        if use_cuda:
-            x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
-        else:
-            x = torch.stack([torch.from_numpy(fi) for fi in framed_imgs], 0)
+            ori_imgs, framed_imgs, framed_metas = preprocess(img_paths, max_size=input_size)
 
-        x = x.to(torch.float32 if not use_float16 else torch.float16).permute(0, 3, 1, 2)
+            if use_cuda:
+                x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
+            else:
+                x = torch.stack([torch.from_numpy(fi) for fi in framed_imgs], 0)
 
-        model = EfficientDetBackbone(compound_coef=compound_coef, num_classes=len(obj_list),
-                                     ratios=anchor_ratios, scales=anchor_scales)
-        model.load_state_dict(torch.load(f'weights/efficientdet-d{compound_coef}.pth'))
-        model.requires_grad_(False)
-        model.eval()
+            x = x.to(torch.float32 if not use_float16 else torch.float16).permute(0, 3, 1, 2)
 
-        if use_cuda:
-            model = model.cuda()
-        if use_float16:
-            model = model.half()
+            model = EfficientDetBackbone(compound_coef=compound_coef, num_classes=len(obj_list),
+                                         ratios=anchor_ratios, scales=anchor_scales)
+            model.load_state_dict(torch.load(f'weights/efficientdet-d{compound_coef}.pth'))
+            model.requires_grad_(False)
+            model.eval()
 
-        with torch.no_grad():
-            features, regression, classification, anchors = model(x)
-            regressBoxes = BBoxTransform()
-            clipBoxes = ClipBoxes()
+            if use_cuda:
+                model = model.cuda()
+            if use_float16:
+                model = model.half()
 
-            out = postprocess(x,
-                              anchors, regression, classification,
-                              regressBoxes, clipBoxes,
-                              threshold, iou_threshold)
-        # {frame_id: frame_image, ...}
-        imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
-        # out: [{rois: [bbox1, bbox2, ..., bboxn], class_ids: [id1, ..., idn], scores: [score1, ..., scoren]}
-        out = invert_affine(framed_metas, out)
-        # Create Image Regions
-        out = create_image_regions(detections=out, creation_schema=creation_schema)
-        # Save Visualizations
-        visual_save_dir = os.path.join(save_dir, f'd{compound_coef}', creation_name, video_id)
-        display(out, imgs, imshow=False, imwrite=True, write_dir=visual_save_dir)
-        # Save Extracted Pipeline Data
-        frame2data = get_frame2data(model_observations=out, frame_paths=img_paths, frame_names=img_names)
+            with torch.no_grad():
+                features, regression, classification, anchors = model(x)
+                regressBoxes = BBoxTransform()
+                clipBoxes = ClipBoxes()
+
+                out = postprocess(x,
+                                  anchors, regression, classification,
+                                  regressBoxes, clipBoxes,
+                                  threshold, iou_threshold)
+            # {frame_id: frame_image, ...}
+            imgs = dict([(name, img) for name, img in zip(img_names, ori_imgs)])
+            # out: [{rois: [bbox1, bbox2, ..., bboxn], class_ids: [id1, ..., idn], scores: [score1, ..., scoren]}
+            out = invert_affine(framed_metas, out)
+            # Create Image Regions
+            out = create_image_regions(detections=out, creation_schema=creation_schema)
+            # Save Visualizations
+            visual_save_dir = os.path.join(save_dir, f'd{compound_coef}', creation_name, video_id)
+            display(out, imgs, imshow=False, imwrite=True, write_dir=visual_save_dir)
+            # Save Extracted Pipeline Data
+            batch_frame2data = get_frame2data(model_observations=out, frame_paths=img_paths, frame_names=img_names)
+            frame2data.update(batch_frame2data)
         # pipeline_save_dir = os.path.join(save_dir, video_id)
         # os.makedirs(pipeline_save_dir, exist_ok=True)
         pipeline_save_dir = create_dir(save_dir, video_id)
