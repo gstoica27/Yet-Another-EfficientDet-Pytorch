@@ -60,7 +60,7 @@ def create_image_regions(detections, creation_schema):
         seen_region_idxs = []
         for idx, frame_detection in enumerate(frame_detections):
             # Only create region if it's unseen (avoid duplicates)
-            if frame_detection in seen_frame_regions:
+            if tuple(frame_detection) in seen_frame_regions:
                 continue
             frame_region, _ = create_image_region(roi_bbox=frame_detection,
                                                   rest_bboxes=frame_detections,
@@ -139,11 +139,14 @@ if __name__ == '__main__':
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
     partition_dir = os.path.join(cwd, 'datasets/example/train')
+
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
     save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
     os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
+        if not os.path.isdir(video_dir):
+            continue
         frame_filenames = os.listdir(video_dir)
 
         img_paths = [os.path.join(video_dir, img_name) for img_name in frame_filenames]
