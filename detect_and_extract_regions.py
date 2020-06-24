@@ -154,10 +154,12 @@ if __name__ == '__main__':
     input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
-    partition_dir = os.path.join(cwd, 'datasets/example/train')
-
+    partition_name = 'train'
+    # partition_dir = os.path.join(cwd, 'datasets/example/train')
+    partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
-    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    # save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
     os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
