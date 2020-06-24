@@ -131,7 +131,8 @@ if __name__ == '__main__':
     cwd = os.getcwd()
     partition_dir = os.path.join(cwd, 'datasets/example/train')
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
-    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions')
+    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    os.makedirs(save_dir, exist_ok=True)
     for video_id in os.listdir(partition_dir):
         video_dir = os.path.join(partition_dir, video_id)
         frame_filenames = os.listdir(video_dir)
@@ -185,5 +186,5 @@ if __name__ == '__main__':
         pipeline_save_path = os.path.join(pipeline_save_dir, 'frame2data.pkl')
         print(f'Saving information to: {pipeline_save_path}')
         with open(pipeline_save_path, 'wb') as handle:
-            pickle.dump(frame2data, handle)
+            pickle.dump(frame2data, handle, protocol=2)
         print('Saved!')
