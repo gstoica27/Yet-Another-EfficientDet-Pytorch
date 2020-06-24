@@ -84,7 +84,7 @@ def create_image_regions(detections, creation_schema):
                                                   region_params=creation_schema)
             frame_regions.append(frame_region)
         print('Num regions before removal: {}'.format(len(frame_regions)))
-        frame_regions, keep_idxs = remove_highly_similar_regions(frame_regions)
+        frame_regions, keep_idxs = remove_highly_similar_regions(np.array(frame_regions))
         print('Num regions after removal: {}'.format(len(frame_regions)))
         regions.append(
             {
