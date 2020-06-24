@@ -11,6 +11,7 @@ from torchvision.ops import nms
 from torchvision.ops.boxes import batched_nms
 from typing import Union
 import uuid
+import pickle
 
 from utils.sync_batchnorm import SynchronizedBatchNorm2d
 
@@ -313,7 +314,7 @@ def plot_one_box(img, coord, label=None, score=None, color=None, line_thickness=
 color_list = standard_to_bgr(STANDARD_COLORS)
 
 # George's Image Region Creation Code
-def create_image_region(bboxes, roi_bbox, filter_fn='threshold', filter_bound=.1, relevance_fn='iou', minimum_size=100):
+def create_image_region(bboxes, roi_bbox, filter_fn='threshold', filter_bound=.1, relevance_fn='iou', pad_amount=100):
     """
     Create image region around detected object using convex hull of surrounding boxes (including RoI bbox)
     :param bboxes: list of all detected bboxes in the image
@@ -338,7 +339,7 @@ def create_image_region(bboxes, roi_bbox, filter_fn='threshold', filter_bound=.1
 
     detection_overlaps = []
     for i, bbox in enumerate(bboxes):
-        overlap = compute_iou(bbox, roi_bbox, comp_type=relevance_fn, minimum_size=minimum_size)
+        overlap = compute_overlap(bbox, roi_bbox, comp_type=relevance_fn, pad_amount=pad_amount)
         detection_overlaps.append(overlap)
     detection_overlaps = np.array(detection_overlaps)
 
@@ -376,7 +377,7 @@ def create_image_region(bboxes, roi_bbox, filter_fn='threshold', filter_bound=.1
 
     elif filter_fn == 'pad_solo':
         # pad all bboxes to be at least some size (so that they have surrounding context)
-        padded_anomaly = pad_bbox(roi_bbox, minimum_size=minimum_size)
+        padded_anomaly = pad_bbox(roi_bbox, pad_amount=pad_amount)
         valid_bboxes = padded_anomaly.reshape((1, 4))
 
     else:
@@ -436,7 +437,7 @@ def compute_bbox_intersection_area(bbox1, bbox2):
     return intersection_area
 
 
-def compute_overlap(bbox1, bbox2, comp_type='iou', minimum_size=100):
+def compute_overlap(bbox1, bbox2, comp_type='iou', pad_amount=10):
     """
     Compute iou between two bboxes
     :param bbox1: first bbox
@@ -449,7 +450,6 @@ def compute_overlap(bbox1, bbox2, comp_type='iou', minimum_size=100):
     # print('comp_type is: {} | equals giou? {}'.format(comp_type, comp_type == 'giou'))
     if comp_type == 'iou':
         iou = compute_iou(bbox1, bbox2)
-
     # area of intersection divided by candidate bounding box
     # this encourages the selection of condidate boxes that are near the anomaly
     elif comp_type == 'candidate':
@@ -462,8 +462,8 @@ def compute_overlap(bbox1, bbox2, comp_type='iou', minimum_size=100):
         iou = compute_giou(bbox1, bbox2)
 
     elif comp_type == 'pad_iou':
-        # padd anomaly bbox
-        padded_bbox2 = pad_bbox(bbox2, minimum_size=minimum_size)
+        # pad anomaly bbox
+        padded_bbox2 = pad_bbox(bbox2, pad_amount=pad_amount)
         iou = compute_giou(bbox1, padded_bbox2)
 
     else:
@@ -518,7 +518,7 @@ def compute_giou(bbox1, bbox2):
     return iou
 
 
-def pad_bbox(bbox, minimum_size=100):
+def pad_bbox(bbox, pad_amount=10):
     """
     Pad bbox to a lower bound specified by minimum_size. Note, the radius (and padding) is measured along either the
     x or y axis, and the bbox radius is taken to be larger of the two. Padding is performed until that radius achieves
@@ -531,21 +531,10 @@ def pad_bbox(bbox, minimum_size=100):
     :rtype: [1, 4]
     """
     bbox_ = bbox.copy()
-    cx = (bbox[0] + bbox[2]) / 2
-    cy = (bbox[1] + bbox[3]) / 2
-    # make padding amount be dependent on largest side of bbox
-    radius = np.linalg.norm([cx - bbox[0], cy - bbox[1]])
-    # limit pad radius amount
-    padding_num = max(float(minimum_size) - radius, 0.)
-
-    # bbox_[0] = max(0., bbox[0] - padding_num)
-    # bbox_[1] = max(0., bbox[1] - padding_num)
-    # bbox_[2] = min(600, bbox[2] + padding_num + 1)
-    # bbox_[3] = min(600, bbox[3] + padding_num + 1)
-    bbox_[0] -= padding_num
-    bbox_[1] -= padding_num
-    bbox_[2] += padding_num
-    bbox_[3] += padding_num
+    bbox_[0] -= pad_amount
+    bbox_[1] -= pad_amount
+    bbox_[2] += pad_amount
+    bbox_[3] += pad_amount
 
     return bbox_
 

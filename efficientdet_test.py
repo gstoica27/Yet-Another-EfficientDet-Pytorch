@@ -34,11 +34,11 @@ creation_schema = {
     'relevance_fn': 'iou',
     'filter_fn': 'threshold',
     'filter_edge': .001,
-    'minimum_size': 0
+    'pad_amount': 0
 }
 creation_name = '{}-{}-{}-{}'.format(
     creation_schema['relevance_fn'], creation_schema['filter_fn'],
-    creation_schema['filter_edge'], creation_schema['minimum_size']
+    creation_schema['filter_edge'], creation_schema['pad_amount']
 )
 
 # replace this part with your project's anchor config

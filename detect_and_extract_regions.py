@@ -56,11 +56,17 @@ def create_image_regions(detections, creation_schema):
     for frame_observations in detections:
         frame_regions = []
         frame_detections = frame_observations['rois']
+        seen_frame_regions = set()
         for frame_detection in frame_detections:
+            # Only create region if it's unseen (avoid duplicates)
+            if frame_detection in seen_frame_regions:
+                continue
             frame_region, _ = create_image_region(roi_bbox=frame_detection,
                                                   rest_bboxes=frame_detections,
                                                   region_params=creation_schema)
             frame_regions.append(frame_region)
+            region_tuple = tuple(frame_detection)
+            seen_frame_regions.add(region_tuple)
         regions.append(
             {
                 'rois': frame_regions,
@@ -95,11 +101,11 @@ if __name__ == '__main__':
         'relevance_fn': 'iou',
         'filter_fn': 'threshold',
         'filter_edge': .001,
-        'minimum_size': 0
+        'pad_amount': 10
     }
     creation_name = '{}-{}-{}-{}'.format(
         creation_schema['relevance_fn'], creation_schema['filter_fn'],
-        creation_schema['filter_edge'], creation_schema['minimum_size']
+        creation_schema['filter_edge'], creation_schema['pad_amount']
     )
     # replace this part with your project's anchor config
     anchor_ratios = [(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)]
