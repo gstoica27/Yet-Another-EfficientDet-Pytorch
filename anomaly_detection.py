@@ -61,6 +61,9 @@ def compute_anomaly_bound(class2freq, metric='iqr'):
 def identify_anomalies(partition_dir, class2freqs, bound):
     anomalies_info = {}
     for video_id in os.listdir(partition_dir):
+        # Skip non partition frames
+        if 'd4' in video_id:
+            continue
         frame2data_path = os.path.join(partition_dir, video_id, 'frame2data.pkl')
         frame2data = pickle.load(open(frame2data_path, 'rb'))
         for frame, data in frame2data.items():
