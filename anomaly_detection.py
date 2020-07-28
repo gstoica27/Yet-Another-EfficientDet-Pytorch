@@ -52,8 +52,10 @@ def compute_anomaly_bound(class2freq, metric='iqr'):
     elif 'percentile' in metric:
         percentile = metric.split('_')[-1]
         bound = compute_percentile(frequencies, percentile)
+    elif 'threshold' in metric:
+        bound = metric.split('_')[-1]
     else:
-        raise ValueError('metric must be in: {iqr, percentile_*}')
+        raise ValueError('metric must be in: {iqr, percentile_*, threshold_*}')
     return bound
 
 def identify_anomalies(partition_dir, class2freqs, bound):
@@ -87,7 +89,7 @@ if __name__ == '__main__':
 
     id2class = get_id2class(CLASSES)
     train_class2freqs = compute_class_frequencies(partition_dir=train_dir, id2class=id2class)
-    anomaly_bound = compute_anomaly_bound(class2freq=train_class2freqs, metric='iqr')
+    anomaly_bound = compute_anomaly_bound(class2freq=train_class2freqs, metric='threshold_100')
     print('Class frequencies: {}'.format(train_class2freqs))
     print('Anomaly Bound: {}'.format(anomaly_bound))
     anomalies = identify_anomalies(test_dir, train_class2freqs, anomaly_bound)
