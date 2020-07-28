@@ -50,10 +50,10 @@ def compute_anomaly_bound(class2freq, metric='iqr'):
     if metric == 'iqr':
         bound = compute_iqr(frequencies)
     elif 'percentile' in metric:
-        percentile = metric.split('_')[-1]
+        percentile = float(metric.split('_')[-1])
         bound = compute_percentile(frequencies, percentile)
     elif 'threshold' in metric:
-        bound = metric.split('_')[-1]
+        bound = float(metric.split('_')[-1])
     else:
         raise ValueError('metric must be in: {iqr, percentile_*, threshold_*}')
     return bound
