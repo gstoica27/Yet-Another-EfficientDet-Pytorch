@@ -70,7 +70,7 @@ def identify_anomalies(partition_dir, class2freqs, bound):
             class_ids = data['class_ids']
             for idx, class_id in enumerate(class_ids):
                 class_name = id2class[class_id]
-                class_freq = class2freqs[class_name]
+                class_freq = class2freqs.get(class_name, -np.inf)
                 # We've found an anomaly
                 if class_freq <= bound:
                     anomaly_info = {
