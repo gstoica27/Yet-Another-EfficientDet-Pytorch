@@ -13,6 +13,7 @@ import cv2
 import pickle
 import numpy as np
 from copy import deepcopy
+from tqdm import tqdm
 
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
@@ -163,7 +164,7 @@ if __name__ == '__main__':
     save_dir = '/home/scratch/gis/datasets/Avenue/extracted_detections/{}'.format(partition_name)
     batch_size = 10
     os.makedirs(save_dir, exist_ok=True)
-    for video_id in os.listdir(partition_dir):
+    for video_id in tqdm(os.listdir(partition_dir)):
         video_dir = os.path.join(partition_dir, video_id)
         if not os.path.isdir(video_dir):
             continue
@@ -173,7 +174,7 @@ if __name__ == '__main__':
         img_names = np.array([get_name(img_filepath) for img_filepath in img_paths])
 
         frame2data = {}
-        for i in range(0, len(img_paths), batch_size):
+        for i in tqdm(range(0, len(img_paths), batch_size)):
             img_paths_batch = img_paths[i: i + batch_size]
             img_names_batch = img_names[i: i + batch_size]
 
