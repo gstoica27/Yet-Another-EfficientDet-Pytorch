@@ -58,7 +58,7 @@ def embed_video_regions(frame2data, video_dir, model):
     for frame, data in tqdm(frame2data.items()):
         frame_path = os.path.join(video_dir, frame + '.jpg')
         frame_image = read_image(frame_path)
-        frame2data['frame'] = embed_frame_regions(data, frame_image, model)
+        data['frame'] = embed_frame_regions(data, frame_image, model)
     return frame2data
 
 def save_frame2data(frame2data, path):
