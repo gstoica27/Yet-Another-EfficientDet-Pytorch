@@ -200,7 +200,8 @@ if __name__ == '__main__':
                 features, regression, classification, anchors = model(x)
                 regressBoxes = BBoxTransform()
                 clipBoxes = ClipBoxes()
-
+                print(f'Features: {features.shape} | Regression: {regression.shape} | Classification: {classification.shape}')
+                exit()
                 out = postprocess(x,
                                   anchors, regression, classification,
                                   regressBoxes, clipBoxes,
