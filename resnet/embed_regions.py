@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     for video_id in tqdm(os.listdir(partition_dir)):
         # Skip non partition frames
-        if 'd4' in video_id:
+        if video_id in {'d4', 'list.txt'}:
             continue
         # Update paths
         frame2data_path = os.path.join(frame2data_dir, video_id, 'frame2data.pkl')
