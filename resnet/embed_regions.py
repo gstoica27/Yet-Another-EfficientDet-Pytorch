@@ -73,7 +73,7 @@ if __name__ == '__main__':
     partition = 'train'
     use_cuda = True
     # if only object detection bboxes: 'detections', else: 'regions'
-    region_type = 'detections'
+    region_type = 'regions'
     # Initialize paths
     resnet_path = '/home/scratch/gis/models/resnet/resnet101.pth'
     frame2data_dir = '/home/scratch/gis/datasets/Avenue/extracted_{}/{}'.format(region_type, partition)
