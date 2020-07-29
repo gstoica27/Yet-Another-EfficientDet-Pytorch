@@ -33,12 +33,12 @@ frame_data = frame2data[frame]
 image_path = os.path.join(os.getcwd(), 'example/train/01/453.jpg')
 image_rois = frame_data['rois']
 
-# image = skimage.io.imread(image_path)
-# roi_1 = np.array(image_rois[2]).astype(np.int)
-# cropped_image = image[roi_1[1]-10:roi_1[3]+11, roi_1[0]-10:roi_1[2]+11, :]
-image = read_image(image_path)
-roi = np.array(image_rois[2])
-cropped_image = image.crop((roi[0], roi[1], roi[2] + 1, roi[3] + 1))
+image = skimage.io.imread(image_path)
+roi = np.array(image_rois[2]).astype(np.int)
+cropped_image = image[roi[1]-10:roi[3]+11, roi[0]-10:roi[2]+11, :]
+# image = read_image(image_path)
+# roi = np.array(image_rois[2])
+# cropped_image = image.crop((roi[0], roi[1], roi[2] + 1, roi[3] + 1))
 
 print(frame_data['captions'][2])
 fig = plt.figure()
@@ -46,4 +46,4 @@ plt.imshow(cropped_image)
 fig.savefig('example/image_captions/01/{}.jpg'.format(frame), dpi=fig.dpi)
 plt.show()
 plt.close()
-save_regions_on_image(image, roi, save_path='example/image_captions/01/{}.jpg'.format(frame))
+# save_regions_on_image(image, roi, save_path='example/image_captions/01/{}.jpg'.format(frame))
