@@ -28,6 +28,7 @@ def embed_region(model, image):
 
 def read_image(image_path):
     image = skimage.io.imread(image_path)
+    print('image shape: {}'.format(image.shape))
     if len(image.shape) == 2:
         image = image[:, :, np.newaxis]
         image = np.concatenate((image, image, image), axis=2)
