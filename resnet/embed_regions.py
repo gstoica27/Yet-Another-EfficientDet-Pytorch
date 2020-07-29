@@ -47,6 +47,7 @@ def embed_frame_regions(data, base_image, model):
     data['embeddings'] = []
     for roi in data['rois']:
         crop = crop_image(base_image, roi)
+        print('crop shape: {}'.format(crop.shape))
         embedding = embed_region(model, crop).detach().cpu().numpy().reshape(-1)
         assert embedding.shape[0] == 2048, f"embedding shape is: {embedding.shape}"
         data['embeddings'].append(embedding)
