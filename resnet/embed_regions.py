@@ -28,7 +28,7 @@ def embed_region(model, image):
 
 def read_image(image_path):
     image = skimage.io.imread(image_path)
-    print('image shape: {}'.format(image.shape))
+    # print('image shape: {}'.format(image.shape))
     if len(image.shape) == 2:
         image = image[:, :, np.newaxis]
         image = np.concatenate((image, image, image), axis=2)
@@ -47,7 +47,7 @@ def embed_frame_regions(data, base_image, model):
     data['embeddings'] = []
     for roi in data['rois']:
         crop = crop_image(base_image, roi)
-        print('crop shape: {} | base shape: {} | roi: {}'.format(crop.shape, base_image.shape, roi))
+        # print('crop shape: {} | base shape: {} | roi: {}'.format(crop.shape, base_image.shape, roi))
         embedding = embed_region(model, crop).detach().cpu().numpy().reshape(-1)
         assert embedding.shape[0] == 2048, f"embedding shape is: {embedding.shape}"
         data['embeddings'].append(embedding)
