@@ -15,7 +15,7 @@ def comply_with_python2(path):
 
 if __name__ == '__main__':
     partition = 'train'
-    region_type = 'regions'
+    region_type = 'detections'
 
     frame2data_dir = '/home/scratch/gis/datasets/Avenue/extracted_{}/{}'.format(region_type, partition)
 
