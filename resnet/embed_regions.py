@@ -38,6 +38,7 @@ def read_image(image_path):
     return image
 
 def crop_image(image, roi):
+    roi = np.round(np.array(roi)).astype(np.int)
     cropped_image = image[roi[1]:roi[3] + 1, roi[0]:roi[2] + 1, :]
     return cropped_image
 
