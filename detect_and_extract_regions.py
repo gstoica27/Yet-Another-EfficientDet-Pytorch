@@ -228,7 +228,7 @@ if __name__ == '__main__':
             out = create_image_regions(detections=out, creation_schema=creation_schema)
             # Save Visualizations
             visual_save_dir = os.path.join(save_dir, f'd{compound_coef}', creation_name, video_id)
-            display(out, imgs, imshow=False, imwrite=True, write_dir=visual_save_dir)
+            # display(out, imgs, imshow=False, imwrite=True, write_dir=visual_save_dir)
             # Save Extracted Pipeline Data
             batch_frame2data = get_frame2data(model_observations=out, frame_paths=img_paths, frame_names=img_names_batch)
             frame2data.update(batch_frame2data)
