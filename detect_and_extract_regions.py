@@ -78,19 +78,32 @@ def create_image_regions(detections, creation_schema):
     regions = []
     for frame_observations in detections:
         frame_regions = []
+        region_classes = []
         frame_detections = frame_observations['rois']
+        detection_classes = frame_observations['class_ids']
         for idx, frame_detection in enumerate(frame_detections):
-            frame_region, _ = create_image_region(roi_bbox=frame_detection,
-                                                  rest_bboxes=frame_detections,
-                                                  region_params=creation_schema)
+            frame_region, _, bbox_idxs = create_image_region(roi_bbox=frame_detection,
+                                                             rest_bboxes=frame_detections,
+                                                             region_params=creation_schema)
             frame_regions.append(frame_region)
+            # Aggregate classes in region
+            bbox_idxs = bbox_idxs.tolist()
+            bbox_idxs.append(idx)
+            included_classes = detection_classes[bbox_idxs].tolist()
+            included_classes = tuple(sorted(list(set(included_classes))))
+            region_classes.append(included_classes)
+            # Choose best class as score
+            frame_observations['scores'][idx] = np.max(frame_observations['scores'][bbox_idxs])
+
+        region_classes = np.array(region_classes)
         # print('Num regions before removal: {}'.format(len(frame_regions)))
         frame_regions, keep_idxs = remove_highly_similar_regions(np.array(frame_regions))
+        keep_classes = region_classes[keep_idxs]
         # print('Num regions after removal: {}'.format(len(frame_regions)))
         regions.append(
             {
                 'rois': frame_regions,
-                'class_ids': frame_observations['class_ids'][keep_idxs],
+                'class_ids': keep_classes,
                 'scores': frame_observations['scores'][keep_idxs]
             }
         )
@@ -120,7 +133,7 @@ if __name__ == '__main__':
     creation_schema = {
         'relevance_fn': 'iou',
         'filter_fn': 'threshold',
-        'filter_edge': 100., # .001,
+        'filter_edge': .001,
         'pad_amount': 10
     }
     creation_name = '{}-{}-{}-{}'.format(
@@ -161,7 +174,7 @@ if __name__ == '__main__':
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
     # save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
     # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
-    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_detections/{}'.format(partition_name)
+    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
     batch_size = 10
     os.makedirs(save_dir, exist_ok=True)
     for video_id in tqdm(os.listdir(partition_dir)):
