@@ -169,12 +169,11 @@ if __name__ == '__main__':
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
     partition_name = 'train'
-    partition_dir = os.path.join(cwd, 'datasets/example/train')
-    # partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
+    # partition_dir = os.path.join(cwd, 'datasets/example/train')
+    partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
-    save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
-    # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
-    # save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
+    # save_dir = os.path.join(cwd, 'datasets/example/extracted_regions/train')
+    save_dir = '/home/scratch/gis/datasets/Avenue/extracted_regions/{}'.format(partition_name)
     batch_size = 10
     os.makedirs(save_dir, exist_ok=True)
     for video_id in tqdm(os.listdir(partition_dir)):
