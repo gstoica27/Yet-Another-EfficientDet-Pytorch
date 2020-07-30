@@ -168,7 +168,7 @@ if __name__ == '__main__':
     input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
     input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
     cwd = os.getcwd()
-    partition_name = 'train'
+    partition_name = 'test'
     # partition_dir = os.path.join(cwd, 'datasets/example/train')
     partition_dir = '/home/scratch/gis/datasets/Avenue/frames/{}'.format(partition_name)
     # img_filenames = ['453.jpg', '537.jpg', '946.jpg', '971.jpg']
