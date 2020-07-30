@@ -183,7 +183,7 @@ if __name__ == '__main__':
             continue
         frame_filenames = os.listdir(video_dir)
 
-        img_paths = np.array([os.path.join(video_dir, img_name) for img_name in frame_filenames])
+        img_paths = np.array([os.path.join(video_dir, img_name) for img_name in frame_filenames if 'old_images' not in img_name])
         img_names = np.array([get_name(img_filepath) for img_filepath in img_paths])
 
         frame2data = {}
