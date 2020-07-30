@@ -57,7 +57,7 @@ def remove_highly_similar_regions(regions):
     distinct_idxs = []
     seen_regions = set()
     for idx, region in enumerate(regions):
-        umbrella_region, _ = create_image_region(roi_bbox=region,
+        umbrella_region, _, _ = create_image_region(roi_bbox=region,
                                                  rest_bboxes=regions,
                                                  region_params={
                                                   'relevance_fn': 'iou',
