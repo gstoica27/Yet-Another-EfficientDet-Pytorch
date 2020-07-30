@@ -71,7 +71,7 @@ def preprocess(image_paths, max_size=512, mean=(0.406, 0.456, 0.485), std=(0.225
     if isinstance(image_paths, list):
         ori_imgs = []
         for image_path in image_paths:
-            # print(f'Imag to be read: {image_path}')
+            print(f'Imag to be read: {image_path}')
             img_data = cv2.imread(image_path)
             ori_imgs.append(img_data)
     else:
