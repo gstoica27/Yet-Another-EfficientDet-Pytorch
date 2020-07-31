@@ -63,7 +63,7 @@ def embed_video_regions(frame2data, video_dir, model):
 
 def save_frame2data(frame2data, path):
     with open(path, 'wb') as handle:
-        pickle.dump(frame2data, handle)
+        pickle.dump(frame2data, handle, protocol=2)
 
 def load_frame2data(path):
     return pickle.load(open(path, 'rb'))
