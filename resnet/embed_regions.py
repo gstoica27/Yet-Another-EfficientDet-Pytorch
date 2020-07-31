@@ -70,7 +70,7 @@ def load_frame2data(path):
 
 if __name__ == '__main__':
     # Set arguments
-    partition = 'test'
+    partition = 'train'
     use_cuda = True
     # if only object detection bboxes: 'detections', else: 'regions'
     region_type = 'regions'
